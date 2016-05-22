@@ -3,6 +3,7 @@ package full_test
 import (
 	"math/rand"
 	"testing"
+	"time"
 
 	"gopkg.in/jackc/pgx.v2"
 
@@ -80,4 +81,28 @@ func BenchmarkParallelCreateOrder(b *testing.B) {
 			}
 		}
 	})
+}
+
+func TestCreateOrderNTimes(t *testing.T) {
+	var N = 1000
+
+	var startTime = time.Now().UnixNano()
+
+	for i := 0; i < N; i++ {
+		req := &full.CreateOrderReq{
+			ItemId:      rand.Int63n(global.TOTAL_ITEM_ID_COUNT) + global.START_ITEM_ID,
+			UserId:      1,
+			BuyQuantity: 1,
+		}
+		_, err := full.CreateOrder(req)
+		if err != nil {
+			t.Fatal("create error fail.", err)
+		}
+	}
+
+	var endTime = time.Now().UnixNano()
+
+	var during = endTime - startTime
+
+	t.Log("qps:", float64(N)/float64(during)*1000000000)
 }
