@@ -21,8 +21,8 @@ createdb $USERNAME
 ./psql
 
 create user orderuser with password 'orderuser';
-create database order owner orderuser;
-GRANT ALL PRIVILEGES ON DATABASE order to orderuser;
+create database order_order owner orderuser;
+GRANT ALL PRIVILEGES ON DATABASE order_order to orderuser;
 
 create user inventoryuser with password 'invnetoryuser';
 create database inventory owner inventoryuser;
@@ -32,7 +32,7 @@ GRANT ALL PRIVILEGES ON DATABASE inventory to inventoryuser;
 ##### order db init
 
 ```
-./psql -U orderuser -d order -h 127.0.0.1 -p 5432
+./psql -U orderuser -d order_order -h 127.0.0.1 -p 5432
 ```
 
 ```
@@ -43,9 +43,11 @@ create table order_order (
     create_time bigint,
     item_id bigint,
     status int,
+    modify_time bigint,
     
     primary key(id)
 );
+//TODO uniq index
 CREATE INDEX order_order_order_id ON order_order (order_id);
 ```
 
