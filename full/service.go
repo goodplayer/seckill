@@ -37,7 +37,11 @@ func CreateOrder(req *CreateOrderReq) (*CreateOrderResp, error) {
 	}
 
 	// 3. reduce inventory
-	err = ReduceInventory(req.ItemId, req.BuyQuantity)
+	newQuantity, err := ReduceInventory(req.ItemId, req.BuyQuantity)
+	if err != nil {
+		return nil, err
+	}
+	err = UpdateQuantityCache(req.ItemId, newQuantity)
 	if err != nil {
 		return nil, err
 	}
