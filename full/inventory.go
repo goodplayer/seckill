@@ -9,6 +9,7 @@ func QueryInventory(itemId int64) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
+	defer row.Close()
 	if row.Next() {
 		var quantity int64
 		err = row.Scan(&quantity)

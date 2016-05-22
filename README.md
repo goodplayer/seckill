@@ -44,11 +44,11 @@ create table order_order (
     item_id bigint,
     status int,
     modify_time bigint,
+    buy_quantity bigint,
     
     primary key(id)
 );
-//TODO uniq index
-CREATE INDEX order_order_order_id ON order_order (order_id);
+CREATE UNIQUE INDEX order_order_order_id ON order_order (order_id);
 ```
 
 ##### inventory db init

@@ -1,6 +1,10 @@
 package full
 
-import "gopkg.in/jackc/pgx.v2"
+import (
+	"gopkg.in/jackc/pgx.v2"
+	"math/rand"
+	"time"
+)
 
 var (
 	order_pg_pool     *pgx.ConnPool
@@ -13,6 +17,7 @@ type Config struct {
 }
 
 func Init(config *Config) error {
+	rand.Seed(time.Now().UnixNano()) // for generate order id
 	var err error
 	order_pg_pool, err = pgx.NewConnPool(config.OrderPgConfig)
 	if err != nil {

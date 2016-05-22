@@ -22,5 +22,5 @@ func TestSaveOrder(t *testing.T) {
 		},
 	})
 
-	t.Log(full.SaveOrder(1, 1, 1))
+	t.Log(full.SaveOrder(1, 1, 1, 1))
 }

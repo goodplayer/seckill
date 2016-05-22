@@ -15,6 +15,12 @@ type CreateOrderResp struct {
 func CreateOrder(req *CreateOrderReq) (*CreateOrderResp, error) {
 	//TODO 1. ratelimit
 
+	// 1.5. check param
+	err := checkParam(req)
+	if err != nil {
+		return nil, err
+	}
+
 	// 2. query inventory
 	quantity, err := QueryInventory(req.ItemId)
 	if err != nil {
@@ -37,9 +43,9 @@ func CreateOrder(req *CreateOrderReq) (*CreateOrderResp, error) {
 	}
 
 	// 4. create order
-	err = SaveOrder(orderId, req.UserId, req.ItemId)
+	err = SaveOrder(orderId, req.UserId, req.ItemId, req.BuyQuantity)
 	if err != nil {
-		//TODO 4.5 add back inventory
+		//TODO 4.5. add back inventory
 		return nil, err
 	}
 
@@ -48,4 +54,14 @@ func CreateOrder(req *CreateOrderReq) (*CreateOrderResp, error) {
 	}
 
 	return resp, nil
+}
+
+func checkParam(req *CreateOrderReq) error {
+	if req.UserId <= 0 {
+		return errors.New("userId should > 0")
+	}
+	if req.BuyQuantity <= 0 {
+		return errors.New("buyQuantity should > 0")
+	}
+	return nil
 }
