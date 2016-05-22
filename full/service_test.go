@@ -65,3 +65,19 @@ func BenchmarkCreateOrder(b *testing.B) {
 		}
 	}
 }
+
+func BenchmarkParallelCreateOrder(b *testing.B) {
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			req := &full.CreateOrderReq{
+				ItemId:      rand.Int63n(global.TOTAL_ITEM_ID_COUNT) + global.START_ITEM_ID,
+				UserId:      1,
+				BuyQuantity: 1,
+			}
+			_, err := full.CreateOrder(req)
+			if err != nil {
+				b.Fatal("create error fail.", err)
+			}
+		}
+	})
+}

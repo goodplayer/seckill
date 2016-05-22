@@ -1,9 +1,10 @@
 package full
 
 import (
-	"gopkg.in/jackc/pgx.v2"
 	"math/rand"
 	"time"
+
+	"gopkg.in/jackc/pgx.v2"
 )
 
 var (
