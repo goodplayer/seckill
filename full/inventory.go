@@ -2,7 +2,6 @@ package full
 
 import (
 	"errors"
-	"fmt"
 	"sync"
 )
 
@@ -18,7 +17,6 @@ func init() {
 func SetCacheItemQuantity(itemId, quantity int64) {
 	lock.Lock()
 	localCache[itemId] = quantity
-	fmt.Println(itemId, quantity)
 	lock.Unlock()
 }
 
@@ -30,7 +28,6 @@ func QueryInventory(itemId int64) (int64, error) {
 		return q, nil
 	}
 
-	fmt.Println("query")
 	row, err := inventory_pg_pool.Query("select quantity from item_inventory where item_id = $1 and status = 0", itemId)
 	if err != nil {
 		return 0, err

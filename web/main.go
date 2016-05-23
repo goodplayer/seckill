@@ -64,7 +64,7 @@ func main() {
 				c.JSON(http.StatusInternalServerError, err.Error())
 				return
 			} else {
-				c.JSON(http.StatusInternalServerError, `{"order_id":`+strconv.FormatInt(resp.OrderId, 10)+`}`)
+				c.JSON(http.StatusOK, `{"order_id":`+strconv.FormatInt(resp.OrderId, 10)+`}`)
 				return
 			}
 		})
