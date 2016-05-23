@@ -2,9 +2,35 @@ package full
 
 import (
 	"errors"
+	"fmt"
+	"sync"
 )
 
+var (
+	lock       = &sync.RWMutex{}
+	localCache map[int64]int64
+)
+
+func init() {
+	localCache = make(map[int64]int64)
+}
+
+func SetCacheItemQuantity(itemId, quantity int64) {
+	lock.Lock()
+	localCache[itemId] = quantity
+	fmt.Println(itemId, quantity)
+	lock.Unlock()
+}
+
 func QueryInventory(itemId int64) (int64, error) {
+	lock.RLock()
+	q, ok := localCache[itemId]
+	lock.RUnlock()
+	if ok {
+		return q, nil
+	}
+
+	fmt.Println("query")
 	row, err := inventory_pg_pool.Query("select quantity from item_inventory where item_id = $1 and status = 0", itemId)
 	if err != nil {
 		return 0, err
@@ -16,6 +42,7 @@ func QueryInventory(itemId int64) (int64, error) {
 		if err != nil {
 			return 0, err
 		}
+		SetCacheItemQuantity(itemId, quantity)
 		return quantity, nil
 	} else {
 		return 0, errors.New("item not found or item status abnormal.")
@@ -34,6 +61,10 @@ func ReduceInventory(itemId, quantity int64) (int64, error) {
 			if err != nil {
 				return 0, err
 			}
+			err = UpdateQuantityCache(itemId, newQuantity)
+			if err != nil {
+				return 0, err
+			}
 			return newQuantity, nil
 		} else {
 			return 0, errors.New("no item inventory reduced.")
@@ -43,5 +74,6 @@ func ReduceInventory(itemId, quantity int64) (int64, error) {
 
 func UpdateQuantityCache(itemId, quantity int64) error {
 	//TODO quantity cache
+	SetCacheItemQuantity(itemId, quantity)
 	return nil
 }
