@@ -11,8 +11,8 @@ var (
 	lock       = &sync.RWMutex{}
 	localCache map[int64]int64
 
-	hotItemList map[int64]chan *ReduceInventoryReq
-	hostItemBatchSize = 10
+	hotItemList      map[int64]chan *ReduceInventoryReq
+	hotItemBatchSize = 10
 )
 
 func init() {
@@ -107,7 +107,7 @@ type ReduceInventoryReq struct {
 
 func hotItemReduceInventoryProcessor(itemId int64, rc chan *ReduceInventoryReq) {
 	var i = 0
-	reqList := make([]*ReduceInventoryReq, hostItemBatchSize)
+	reqList := make([]*ReduceInventoryReq, hotItemBatchSize)
 	for {
 		select {
 		case item := <-rc:
@@ -123,7 +123,7 @@ func hotItemReduceInventoryProcessor(itemId int64, rc chan *ReduceInventoryReq) 
 				i++
 			}
 		}
-		if i >= hostItemBatchSize {
+		if i >= hotItemBatchSize {
 			BatchReduceInventory(itemId, reqList[:i])
 			i = 0
 		}
