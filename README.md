@@ -1,6 +1,13 @@
 # seckill
 seckill experimental
 
+# done
+
+* [x] standard reduce
+* [x] item query cache
+* [x] hot item batch reduce
+* [ ] inventory add back
+
 # start postgresql
 
 ```
