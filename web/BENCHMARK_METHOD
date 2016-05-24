@@ -1,3 +1,11 @@
+### hot item benchmark
+
 ```
 ./wrk --timeout 10s -c 1000 -t 50 -d 10s "http://localhost:7649/reducing?item_id=10000000000&user_id=100000"
+```
+
+### normal item
+
+```
+./wrk --timeout 10s -c 1000 -t 50 -d 10s "http://localhost:7649/reducing?item_id=10000000001&user_id=100000"
 ```

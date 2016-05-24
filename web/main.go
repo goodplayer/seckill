@@ -38,6 +38,7 @@ func main() {
 
 	g := gin_startup.NewGinStartup()
 	g.Custom(func(r *gin.Engine) {
+		//r.Use(gin.Logger(), gin.Recovery())
 		r.GET("/reducing", func(c *gin.Context) {
 
 			itemIdStr, ok := c.GetQuery("item_id")
