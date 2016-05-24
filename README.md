@@ -7,6 +7,7 @@ seckill experimental
 * [x] item query cache
 * [x] hot item batch reduce
 * [ ] inventory add back
+* [ ] split inventory
 
 # start postgresql
 
