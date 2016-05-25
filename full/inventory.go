@@ -29,12 +29,14 @@ func SetCacheItemQuantity(itemId, quantity int64) {
 	lock.Unlock()
 }
 
-func QueryInventory(itemId int64) (int64, error) {
-	lock.RLock()
-	q, ok := localCache[itemId]
-	lock.RUnlock()
-	if ok {
-		return q, nil
+func QueryInventory(itemId int64, useCache bool) (int64, error) {
+	if useCache {
+		lock.RLock()
+		q, ok := localCache[itemId]
+		lock.RUnlock()
+		if ok {
+			return q, nil
+		}
 	}
 
 	row, err := inventory_pg_pool.Query("select quantity from item_inventory where item_id = $1 and status = 0", itemId)
@@ -89,6 +91,7 @@ func reduceInventoryInternal(itemId, quantity int64) (int64, error) {
 			}
 			return newQuantity, nil
 		} else {
+			QueryInventory(itemId, false)
 			return 0, errors.New("no item inventory reduced.")
 		}
 	}

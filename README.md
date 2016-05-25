@@ -8,6 +8,7 @@ seckill experimental
 * [x] hot item batch reduce
 * [ ] inventory add back
 * [ ] split inventory
+* [ ] user qualifier
 
 # start postgresql
 

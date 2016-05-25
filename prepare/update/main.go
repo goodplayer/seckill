@@ -28,4 +28,9 @@ func main() {
 	if err != nil {
 		log.Fatalln("update item_inventory error.", err)
 	}
+
+	_, err = pool.Exec("update item_inventory set quantity = 10 where item_id = 2000000000;")
+	if err != nil {
+		log.Fatalln("update item_inventory error.", err)
+	}
 }

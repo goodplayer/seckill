@@ -24,7 +24,7 @@ func CreateOrder(req *CreateOrderReq) (*CreateOrderResp, error) {
 	}
 
 	// 2. query inventory
-	quantity, err := QueryInventory(req.ItemId)
+	quantity, err := QueryInventory(req.ItemId, true)
 	if err != nil {
 		return nil, err
 	}
