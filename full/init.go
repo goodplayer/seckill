@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	order_pg_pool     *pgx.ConnPool
-	inventory_pg_pool *pgx.ConnPool
+	order_pg_pool      *pgx.ConnPool
+	inventory_pg_pool  *pgx.ConnPool
+	inventory_pg2_pool *pgx.ConnPool
 )
 
 type Config struct {
@@ -26,6 +27,10 @@ func Init(config *Config) error {
 		return err
 	}
 	inventory_pg_pool, err = pgx.NewConnPool(config.InventoryPgConfig)
+	if err != nil {
+		return err
+	}
+	inventory_pg2_pool, err = pgx.NewConnPool(config.InventoryPg2Config)
 	if err != nil {
 		return err
 	}
