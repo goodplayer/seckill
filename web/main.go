@@ -22,7 +22,7 @@ func main() {
 				User:     "inventoryuser",
 				Password: "inventoryuser",
 			},
-			MaxConnections: 200,
+			MaxConnections: 50,
 		},
 		OrderPgConfig: pgx.ConnPoolConfig{
 			ConnConfig: pgx.ConnConfig{
@@ -32,7 +32,7 @@ func main() {
 				User:     "orderuser",
 				Password: "orderuser",
 			},
-			MaxConnections: 200,
+			MaxConnections: 50,
 		},
 	})
 
