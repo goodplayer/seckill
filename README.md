@@ -9,6 +9,7 @@ seckill experimental
 * [ ] inventory add back
 * [ ] split inventory
 * [ ] user qualifier
+* [ ] Q&A filter
 
 # start postgresql
 
