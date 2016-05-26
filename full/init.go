@@ -13,8 +13,9 @@ var (
 )
 
 type Config struct {
-	OrderPgConfig     pgx.ConnPoolConfig
-	InventoryPgConfig pgx.ConnPoolConfig
+	OrderPgConfig      pgx.ConnPoolConfig
+	InventoryPgConfig  pgx.ConnPoolConfig
+	InventoryPg2Config pgx.ConnPoolConfig
 }
 
 func Init(config *Config) error {

@@ -20,8 +20,22 @@ func main() {
 		MaxConnections: 20,
 	}
 
-	pool, err := pgx.NewConnPool(config)
+	config2 := pgx.ConnPoolConfig{
+		ConnConfig: pgx.ConnConfig{
+			Host:     "127.0.0.1",
+			Port:     5432,
+			Database: "inventory2",
+			User:     "inventoryuser",
+			Password: "inventoryuser",
+		},
+		MaxConnections: 20,
+	}
 
+	pool, err := pgx.NewConnPool(config)
+	if err != nil {
+		log.Fatalln("new conn pool error.", err)
+	}
+	pool2, err := pgx.NewConnPool(config2)
 	if err != nil {
 		log.Fatalln("new conn pool error.", err)
 	}
@@ -61,6 +75,32 @@ func main() {
 	e = tx.Commit()
 	if e != nil {
 		log.Fatalln("commit error of itemId=2000000000.", e)
+	}
+
+	tx, e = pool.Begin()
+	if e != nil {
+		log.Fatalln("begin tx error for itemId=3000000000", e)
+	}
+	itemInventory.ItemId = 3000000000
+	itemInventory.Quantity = 888888888
+	itemInventory.Status = 0
+	create(tx, itemInventory)
+	e = tx.Commit()
+	if e != nil {
+		log.Fatalln("commit error of itemId=3000000000.", e)
+	}
+
+	tx, e = pool2.Begin()
+	if e != nil {
+		log.Fatalln("begin tx error for itemId=3000000000", e)
+	}
+	itemInventory.ItemId = 3000000000
+	itemInventory.Quantity = 888888888
+	itemInventory.Status = 0
+	create(tx, itemInventory)
+	e = tx.Commit()
+	if e != nil {
+		log.Fatalln("commit error of itemId=3000000000.", e)
 	}
 
 	log.Println("done! 10000000")
