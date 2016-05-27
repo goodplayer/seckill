@@ -13,10 +13,15 @@ var (
 
 	hotItemList      map[int64]chan *ReduceInventoryReq
 	hotItemBatchSize = 10
+
+	multiDbItem map[int64]bool
 )
 
 func init() {
 	localCache = make(map[int64]int64)
+
+	multiDbItem = make(map[int64]bool)
+	multiDbItem[3000000000] = true
 
 	hotItemList = make(map[int64]chan *ReduceInventoryReq)
 	hotItemList[global.MIN_ITEM_ID] = make(chan *ReduceInventoryReq, 1024)
@@ -39,6 +44,10 @@ func QueryInventory(itemId int64, useCache bool) (int64, error) {
 		}
 	}
 
+	if v, ok := multiDbItem[itemId]; ok && v {
+		return queryMultiInventory(itemId)
+	}
+
 	row, err := inventory_pg_pool.Query("select quantity from item_inventory where item_id = $1 and status = 0", itemId)
 	if err != nil {
 		return 0, err
@@ -58,6 +67,10 @@ func QueryInventory(itemId int64, useCache bool) (int64, error) {
 }
 
 func ReduceInventory(itemId, quantity int64) (int64, error) {
+	if v, ok := multiDbItem[itemId]; ok && v {
+		return reduceMultiInventory(itemId)
+	}
+
 	c, ok := hotItemList[itemId]
 	if ok {
 		// batch
@@ -71,6 +84,14 @@ func ReduceInventory(itemId, quantity int64) (int64, error) {
 	} else {
 		return reduceInventoryInternal(itemId, quantity)
 	}
+}
+
+func queryMultiInventory(itemId int64) (int64, error) {
+	//TODO
+}
+
+func reduceMultiInventory(itemId int64) (int64, error) {
+	//TODO
 }
 
 func reduceInventoryInternal(itemId, quantity int64) (int64, error) {
