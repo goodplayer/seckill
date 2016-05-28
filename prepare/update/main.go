@@ -23,8 +23,8 @@ func main() {
 			Host:     "127.0.0.1",
 			Port:     5432,
 			Database: "inventory2",
-			User:     "inventoryuser",
-			Password: "inventoryuser",
+			User:     "inventoryuser2",
+			Password: "inventoryuser2",
 		},
 		MaxConnections: 20,
 	}

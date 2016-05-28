@@ -25,8 +25,8 @@ func main() {
 			Host:     "127.0.0.1",
 			Port:     5432,
 			Database: "inventory2",
-			User:     "inventoryuser",
-			Password: "inventoryuser",
+			User:     "inventoryuser2",
+			Password: "inventoryuser2",
 		},
 		MaxConnections: 20,
 	}
@@ -39,6 +39,9 @@ func main() {
 	if err != nil {
 		log.Fatalln("new conn pool error.", err)
 	}
+
+	log.Println(pool.Stat())
+	log.Println(pool2.Stat())
 
 	rand.Seed(time.Now().UnixNano())
 

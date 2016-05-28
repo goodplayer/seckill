@@ -2,6 +2,7 @@ package full
 
 import (
 	"errors"
+	"math/rand"
 	"sync"
 
 	"github.com/goodplayer/seckill/global"
@@ -14,14 +15,23 @@ var (
 	hotItemList      map[int64]chan *ReduceInventoryReq
 	hotItemBatchSize = 10
 
-	multiDbItem map[int64]bool
+	multiDbItem      map[int64]bool
+	multiDbItemCache map[int64]MultiDbItemCacheLine
+	multiDbitemLock  = &sync.Mutex{}
 )
+
+// currently only support 2 dbs
+type MultiDbItemCacheLine struct {
+	Count [2]int64
+	Total int64
+}
 
 func init() {
 	localCache = make(map[int64]int64)
 
 	multiDbItem = make(map[int64]bool)
 	multiDbItem[3000000000] = true
+	multiDbItemCache = make(map[int64]MultiDbItemCacheLine)
 
 	hotItemList = make(map[int64]chan *ReduceInventoryReq)
 	hotItemList[global.MIN_ITEM_ID] = make(chan *ReduceInventoryReq, 1024)
@@ -35,6 +45,10 @@ func SetCacheItemQuantity(itemId, quantity int64) {
 }
 
 func QueryInventory(itemId int64, useCache bool) (int64, error) {
+	if v, ok := multiDbItem[itemId]; ok && v {
+		return queryMultiInventory(itemId, useCache)
+	}
+
 	if useCache {
 		lock.RLock()
 		q, ok := localCache[itemId]
@@ -42,10 +56,6 @@ func QueryInventory(itemId int64, useCache bool) (int64, error) {
 		if ok {
 			return q, nil
 		}
-	}
-
-	if v, ok := multiDbItem[itemId]; ok && v {
-		return queryMultiInventory(itemId)
 	}
 
 	row, err := inventory_pg_pool.Query("select quantity from item_inventory where item_id = $1 and status = 0", itemId)
@@ -68,7 +78,16 @@ func QueryInventory(itemId int64, useCache bool) (int64, error) {
 
 func ReduceInventory(itemId, quantity int64) (int64, error) {
 	if v, ok := multiDbItem[itemId]; ok && v {
-		return reduceMultiInventory(itemId)
+		_, err := reduceMultiInventory(itemId, quantity)
+		// query different Pool, must be out of Row. Otherwise may deadlock. especially when use defer
+		cnt, err2 := queryMultiInventory(itemId, false)
+		if err != nil {
+			return 0, err
+		}
+		if err2 != nil {
+			return 0, err2
+		}
+		return cnt, nil
 	}
 
 	c, ok := hotItemList[itemId]
@@ -86,12 +105,101 @@ func ReduceInventory(itemId, quantity int64) (int64, error) {
 	}
 }
 
-func queryMultiInventory(itemId int64) (int64, error) {
-	//TODO
+func queryMultiInventory(itemId int64, useCache bool) (int64, error) {
+	if useCache {
+		multiDbitemLock.Lock()
+		line, ok := multiDbItemCache[itemId]
+		multiDbitemLock.Unlock()
+		if ok {
+			return line.Total, nil
+		}
+	}
+
+	c1, err := loadDb1Count(itemId)
+	if err != nil {
+		return 0, err
+	}
+	c2, err := loadDb2Count(itemId)
+	if err != nil {
+		return 0, err
+	}
+
+	line := MultiDbItemCacheLine{
+		Count: [2]int64{c1, c2},
+		Total: c1 + c2,
+	}
+
+	multiDbitemLock.Lock()
+	multiDbItemCache[itemId] = line
+	multiDbitemLock.Unlock()
+	return line.Total, nil
 }
 
-func reduceMultiInventory(itemId int64) (int64, error) {
-	//TODO
+func loadDb1Count(itemId int64) (int64, error) {
+	row, err := inventory_pg_pool.Query("select quantity from item_inventory where item_id = $1 and status = 0", itemId)
+	if err != nil {
+		return 0, err
+	}
+	defer row.Close()
+	if row.Next() {
+		var quantity int64
+		err = row.Scan(&quantity)
+		if err != nil {
+			return 0, err
+		}
+		return quantity, nil
+	} else {
+		return 0, errors.New("item not found or item status abnormal in db1. " + row.Err().Error())
+	}
+}
+
+func loadDb2Count(itemId int64) (int64, error) {
+	row, err := inventory_pg2_pool.Query("select quantity from item_inventory where item_id = $1 and status = 0", itemId)
+	if err != nil {
+		return 0, err
+	}
+	defer row.Close()
+	if row.Next() {
+		var quantity int64
+		err = row.Scan(&quantity)
+		if err != nil {
+			return 0, err
+		}
+		return quantity, nil
+	} else {
+		return 0, errors.New("item not found or item status abnormal in db2. " + row.Err().Error())
+	}
+}
+
+func reduceMultiInventory(itemId, quantity int64) (bool, error) {
+	i := rand.Int31n(2)
+	if i == 0 {
+		row, err := inventory_pg_pool.Query("update item_inventory set quantity = quantity - $1 where item_id = $2 and status = 0 and quantity >= $3 returning quantity", quantity, itemId, quantity)
+		if err != nil {
+			return false, err
+		} else {
+			defer row.Close()
+			if row.Next() {
+				return true, nil
+			} else {
+				return false, errors.New("no item inventory reduced.")
+			}
+		}
+	} else if i == 1 {
+		row, err := inventory_pg2_pool.Query("update item_inventory set quantity = quantity - $1 where item_id = $2 and status = 0 and quantity >= $3 returning quantity", quantity, itemId, quantity)
+		if err != nil {
+			return false, err
+		} else {
+			defer row.Close()
+			if row.Next() {
+				return true, nil
+			} else {
+				return false, errors.New("no item inventory reduced.")
+			}
+		}
+	} else {
+		return false, errors.New("error reduce multi-db item. random number is not 0 or 1")
+	}
 }
 
 func reduceInventoryInternal(itemId, quantity int64) (int64, error) {
@@ -119,7 +227,7 @@ func reduceInventoryInternal(itemId, quantity int64) (int64, error) {
 }
 
 func UpdateQuantityCache(itemId, quantity int64) error {
-	//TODO quantity cache
+	// quantity cache
 	SetCacheItemQuantity(itemId, quantity)
 	return nil
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	_ "net/http/pprof"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,7 @@ import (
 	"github.com/goodplayer/seckill/full"
 )
 
-func main() {
+func init() {
 	full.Init(&full.Config{
 		InventoryPgConfig: pgx.ConnPoolConfig{
 			ConnConfig: pgx.ConnConfig{
@@ -22,7 +23,17 @@ func main() {
 				User:     "inventoryuser",
 				Password: "inventoryuser",
 			},
-			MaxConnections: 50,
+			MaxConnections: 1,
+		},
+		InventoryPg2Config: pgx.ConnPoolConfig{
+			ConnConfig: pgx.ConnConfig{
+				Host:     "127.0.0.1",
+				Port:     5432,
+				Database: "inventory2",
+				User:     "inventoryuser2",
+				Password: "inventoryuser2",
+			},
+			MaxConnections: 1,
 		},
 		OrderPgConfig: pgx.ConnPoolConfig{
 			ConnConfig: pgx.ConnConfig{
@@ -32,9 +43,15 @@ func main() {
 				User:     "orderuser",
 				Password: "orderuser",
 			},
-			MaxConnections: 50,
+			MaxConnections: 1,
 		},
 	})
+}
+
+func main() {
+	go func() {
+		http.ListenAndServe("localhost:6060", nil)
+	}()
 
 	g := gin_startup.NewGinStartup()
 	g.Custom(func(r *gin.Engine) {

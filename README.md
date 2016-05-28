@@ -37,8 +37,9 @@ GRANT ALL PRIVILEGES ON DATABASE order_order to orderuser;
 create user inventoryuser with password 'invnetoryuser';
 create database inventory owner inventoryuser;
 GRANT ALL PRIVILEGES ON DATABASE inventory to inventoryuser;
-create database inventory2 owner inventoryuser;
-GRANT ALL PRIVILEGES ON DATABASE inventory2 to inventoryuser;
+create user inventoryuser2 with password 'invnetoryuser2';
+create database inventory2 owner inventoryuser2;
+GRANT ALL PRIVILEGES ON DATABASE inventory2 to inventoryuser2;
 ```
 
 ##### order db init
