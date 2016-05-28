@@ -28,7 +28,7 @@ func init() {
 		InventoryPg2Config: pgx.ConnPoolConfig{
 			ConnConfig: pgx.ConnConfig{
 				Host:     "127.0.0.1",
-				Port:     5432,
+				Port:     15432,
 				Database: "inventory2",
 				User:     "inventoryuser2",
 				Password: "inventoryuser2",

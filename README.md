@@ -15,20 +15,28 @@ seckill experimental
 
 ```
 ./initdb pghome
+./initdb pghome2
+```
+
+```
+sed -i 's/#port = 5432/port = 15432/g' pghome2/postgresql.conf
 ```
 
 ```
 dstart -etoo -out ./pglog.log ./postgres -D ./pghome
+dstart -etoo -out ./pglog2.log ./postgres -D ./pghome2
 ```
 
+## db1
+
 ```
-./psql -d template1
+./psql -h localhost -p 5432 -d template1
  or
-createdb $USERNAME
+./createdb -h localhost -p 5432 $USERNAME
 ```
 
 ```
-./psql
+./psql -h localhost -p 5432
 
 create user orderuser with password 'orderuser';
 create database order_order owner orderuser;
@@ -37,9 +45,6 @@ GRANT ALL PRIVILEGES ON DATABASE order_order to orderuser;
 create user inventoryuser with password 'invnetoryuser';
 create database inventory owner inventoryuser;
 GRANT ALL PRIVILEGES ON DATABASE inventory to inventoryuser;
-create user inventoryuser2 with password 'invnetoryuser2';
-create database inventory2 owner inventoryuser2;
-GRANT ALL PRIVILEGES ON DATABASE inventory2 to inventoryuser2;
 ```
 
 ##### order db init
@@ -87,10 +92,26 @@ create table item_inventory (
 CREATE INDEX item_inventory_item_id_index ON item_inventory (item_id);
 ```
 
+## db2
+
+```
+./psql -h localhost -p 15432 -d template1
+ or
+./createdb -h localhost -p 15432 $USERNAME
+```
+
+```
+./psql -h localhost -p 15432
+
+create user inventoryuser2 with password 'invnetoryuser2';
+create database inventory2 owner inventoryuser2;
+GRANT ALL PRIVILEGES ON DATABASE inventory2 to inventoryuser2;
+```
+
 ##### inventory db2 init
 
 ```
-./psql -U inventoryuser -d inventory2 -h 127.0.0.1 -p 5432
+./psql -U inventoryuser2 -d inventory2 -h 127.0.0.1 -p 15432
 ```
 
 ```
