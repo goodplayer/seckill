@@ -10,6 +10,8 @@ seckill experimental
 * [ ] split inventory
 * [ ] user qualifier
 * [ ] Q&A filter
+* [x] increase connection pool size
+* [x] prepare statement for sql
 
 # start postgresql
 

@@ -1,7 +1,10 @@
 package full
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
+	"log"
 	"math/rand"
 	"sync"
 
@@ -19,6 +22,44 @@ var (
 	multiDbItemCache map[int64]MultiDbItemCacheLine
 	multiDbitemLock  = &sync.Mutex{}
 )
+
+var (
+	queryInventoryKey          string
+	reduceAndQueryInventoryKey string
+)
+
+func prepareInventorySql() {
+	queryInventory := "select quantity from item_inventory where item_id = $1 and status = 0"
+	queryInventoryMd5 := md5.Sum([]byte(queryInventory))
+	queryInventoryKey = "queryInventory_" + hex.EncodeToString(queryInventoryMd5[:])
+	_, err := inventory_pg_pool.Prepare(queryInventoryKey, queryInventory)
+	if err != nil {
+		log.Fatalln("prepare sql pg1 - queryInventory error", err)
+	} else {
+		log.Println("prepare sql pg1 - queryInventory - key:", queryInventoryKey, "sql:", queryInventory)
+	}
+	_, err = inventory_pg2_pool.Prepare(queryInventoryKey, queryInventory)
+	if err != nil {
+		log.Fatalln("prepare sql pg2 - queryInventory error", err)
+	} else {
+		log.Println("prepare sql pg2 - queryInventory - key:", queryInventoryKey, "sql:", queryInventory)
+	}
+	reduceAndQueryInventory := "update item_inventory set quantity = quantity - $1 where item_id = $2 and status = 0 and quantity >= $3 returning quantity"
+	reduceAndQueryInventoryMd5 := md5.Sum([]byte(reduceAndQueryInventory))
+	reduceAndQueryInventoryKey = "reduceAndQuery_" + hex.EncodeToString(reduceAndQueryInventoryMd5[:])
+	_, err = inventory_pg_pool.Prepare(reduceAndQueryInventoryKey, reduceAndQueryInventory)
+	if err != nil {
+		log.Fatalln("prepare sql pg1 - reduceAndQueryInventory error", err)
+	} else {
+		log.Println("prepare sql pg1 - reduceAndQueryInventory -- key:", reduceAndQueryInventoryKey, "sql:", reduceAndQueryInventory)
+	}
+	_, err = inventory_pg_pool.Prepare(reduceAndQueryInventoryKey, reduceAndQueryInventory)
+	if err != nil {
+		log.Fatalln("prepare sql pg2 - reduceAndQueryInventory error", err)
+	} else {
+		log.Println("prepare sql pg2 - reduceAndQueryInventory -- key:", reduceAndQueryInventoryKey, "sql:", reduceAndQueryInventory)
+	}
+}
 
 // currently only support 2 dbs
 type MultiDbItemCacheLine struct {
@@ -58,7 +99,7 @@ func QueryInventory(itemId int64, useCache bool) (int64, error) {
 		}
 	}
 
-	row, err := inventory_pg_pool.Query("select quantity from item_inventory where item_id = $1 and status = 0", itemId)
+	row, err := inventory_pg_pool.Query(queryInventoryKey, itemId)
 	if err != nil {
 		return 0, err
 	}
@@ -136,7 +177,7 @@ func queryMultiInventory(itemId int64, useCache bool) (int64, error) {
 }
 
 func loadDb1Count(itemId int64) (int64, error) {
-	row, err := inventory_pg_pool.Query("select quantity from item_inventory where item_id = $1 and status = 0", itemId)
+	row, err := inventory_pg_pool.Query(queryInventoryKey, itemId)
 	if err != nil {
 		return 0, err
 	}
@@ -154,7 +195,7 @@ func loadDb1Count(itemId int64) (int64, error) {
 }
 
 func loadDb2Count(itemId int64) (int64, error) {
-	row, err := inventory_pg2_pool.Query("select quantity from item_inventory where item_id = $1 and status = 0", itemId)
+	row, err := inventory_pg2_pool.Query(queryInventoryKey, itemId)
 	if err != nil {
 		return 0, err
 	}
@@ -174,7 +215,7 @@ func loadDb2Count(itemId int64) (int64, error) {
 func reduceMultiInventory(itemId, quantity int64) (bool, error) {
 	i := rand.Int31n(2)
 	if i == 0 {
-		row, err := inventory_pg_pool.Query("update item_inventory set quantity = quantity - $1 where item_id = $2 and status = 0 and quantity >= $3 returning quantity", quantity, itemId, quantity)
+		row, err := inventory_pg_pool.Query(reduceAndQueryInventoryKey, quantity, itemId, quantity)
 		if err != nil {
 			return false, err
 		} else {
@@ -186,7 +227,7 @@ func reduceMultiInventory(itemId, quantity int64) (bool, error) {
 			}
 		}
 	} else if i == 1 {
-		row, err := inventory_pg2_pool.Query("update item_inventory set quantity = quantity - $1 where item_id = $2 and status = 0 and quantity >= $3 returning quantity", quantity, itemId, quantity)
+		row, err := inventory_pg2_pool.Query(reduceAndQueryInventoryKey, quantity, itemId, quantity)
 		if err != nil {
 			return false, err
 		} else {
@@ -203,7 +244,7 @@ func reduceMultiInventory(itemId, quantity int64) (bool, error) {
 }
 
 func reduceInventoryInternal(itemId, quantity int64) (int64, error) {
-	r, err := inventory_pg_pool.Query("update item_inventory set quantity = quantity - $1 where item_id = $2 and status = 0 and quantity >= $3 returning quantity", quantity, itemId, quantity)
+	r, err := inventory_pg_pool.Query(reduceAndQueryInventoryKey, quantity, itemId, quantity)
 	if err != nil {
 		return 0, err
 	} else {

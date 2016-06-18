@@ -23,7 +23,7 @@ func init() {
 				User:     "inventoryuser",
 				Password: "inventoryuser",
 			},
-			MaxConnections: 1,
+			MaxConnections: 10,
 		},
 		InventoryPg2Config: pgx.ConnPoolConfig{
 			ConnConfig: pgx.ConnConfig{
@@ -33,7 +33,7 @@ func init() {
 				User:     "inventoryuser2",
 				Password: "inventoryuser2",
 			},
-			MaxConnections: 1,
+			MaxConnections: 10,
 		},
 		OrderPgConfig: pgx.ConnPoolConfig{
 			ConnConfig: pgx.ConnConfig{
@@ -43,7 +43,7 @@ func init() {
 				User:     "orderuser",
 				Password: "orderuser",
 			},
-			MaxConnections: 1,
+			MaxConnections: 10,
 		},
 	})
 }

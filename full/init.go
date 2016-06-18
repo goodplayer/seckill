@@ -34,6 +34,8 @@ func Init(config *Config) error {
 	if err != nil {
 		return err
 	}
+	prepareInventorySql()
+	prepareOrderSql()
 	return nil
 }
 
