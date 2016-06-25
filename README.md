@@ -12,6 +12,7 @@ seckill experimental
 * [ ] Q&A filter
 * [x] increase connection pool size
 * [x] prepare statement for sql
+* [x] use pg_try_advisory_xact_lock to reduce lock overhead. this may increase overall qps but not updating qps
 
 # start postgresql
 

@@ -44,7 +44,7 @@ func prepareInventorySql() {
 	} else {
 		log.Println("prepare sql pg2 - queryInventory - key:", queryInventoryKey, "sql:", queryInventory)
 	}
-	reduceAndQueryInventory := "update item_inventory set quantity = quantity - $1 where item_id = $2 and status = 0 and quantity >= $3 returning quantity"
+	reduceAndQueryInventory := "update item_inventory set quantity = quantity - $1 where item_id = $2 and status = 0 and quantity >= $3 and pg_try_advisory_xact_lock($2) returning quantity"
 	reduceAndQueryInventoryMd5 := md5.Sum([]byte(reduceAndQueryInventory))
 	reduceAndQueryInventoryKey = "reduceAndQuery_" + hex.EncodeToString(reduceAndQueryInventoryMd5[:])
 	_, err = inventory_pg_pool.Prepare(reduceAndQueryInventoryKey, reduceAndQueryInventory)
