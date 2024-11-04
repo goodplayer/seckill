@@ -1,14 +1,14 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	_ "net/http/pprof"
+	"net/url"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/jackc/pgx.v2"
-
-	"import.moetang.info/go/lib/gin-startup"
 
 	"github.com/goodplayer/seckill/full"
 )
@@ -53,10 +53,10 @@ func main() {
 		http.ListenAndServe("localhost:6060", nil)
 	}()
 
-	g := gin_startup.NewGinStartup()
-	g.Custom(func(r *gin.Engine) {
+	g := gin.New()
+	{
 		//r.Use(gin.Logger(), gin.Recovery())
-		r.GET("/reducing", func(c *gin.Context) {
+		g.GET("/reducing", func(c *gin.Context) {
 
 			itemIdStr, ok := c.GetQuery("item_id")
 			userIdStr, ok := c.GetQuery("user_id")
@@ -86,9 +86,28 @@ func main() {
 				return
 			}
 		})
-	})
-	g.EnableHttp("tcp://127.0.0.1:7649")
-	g.Start()
+	}
+	go func() {
+		u, err := url.Parse("tcp://127.0.0.1:7649")
+		if err != nil {
+			panic(err)
+		}
+		if gin.IsDebugging() {
+			log.Printf("[GIN-debug] Listening and serving HTTP on %s\n", u.Host)
+		}
+		defer func() {
+			if err != nil && gin.IsDebugging() {
+				log.Printf("[GIN-debug] [ERROR] %v\n", err)
+			}
+		}()
+
+		server := &http.Server{
+			Addr:    u.Host,
+			Handler: g,
+		}
+
+		err = server.ListenAndServe()
+	}()
 
 	cccc := make(chan bool)
 	<-cccc
