@@ -17,6 +17,7 @@ func TestBasicInsert(t *testing.T) {
 		t.Error(err)
 	}
 	engine.SetMaxOpenConns(150)
+	engine.SetMaxIdleConns(100)
 	engine.ShowSQL(false)
 
 	const workerCnt = 100
