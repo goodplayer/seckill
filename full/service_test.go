@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"gopkg.in/jackc/pgx.v2"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/goodplayer/seckill/full"
 	"github.com/goodplayer/seckill/global"

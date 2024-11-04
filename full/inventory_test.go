@@ -3,7 +3,7 @@ package full_test
 import (
 	"testing"
 
-	"gopkg.in/jackc/pgx.v2"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/goodplayer/seckill/full"
 )

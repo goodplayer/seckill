@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	"gopkg.in/jackc/pgx.v2"
+	"github.com/jackc/pgx/v5"
 )
 
 func main() {

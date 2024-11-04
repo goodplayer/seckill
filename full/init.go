@@ -1,36 +1,38 @@
 package full
 
 import (
+	"context"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"math/rand"
 	"time"
 
-	"gopkg.in/jackc/pgx.v2"
+	"github.com/jackc/pgx/v5"
 )
 
 var (
-	order_pg_pool      *pgx.ConnPool
-	inventory_pg_pool  *pgx.ConnPool
-	inventory_pg2_pool *pgx.ConnPool
+	order_pg_pool      *pgxpool.Pool
+	inventory_pg_pool  *pgxpool.Pool
+	inventory_pg2_pool *pgxpool.Pool
 )
 
 type Config struct {
-	OrderPgConfig      pgx.ConnPoolConfig
-	InventoryPgConfig  pgx.ConnPoolConfig
-	InventoryPg2Config pgx.ConnPoolConfig
+	OrderPgConfig      pgxpool.Config
+	InventoryPgConfig  pgxpool.Config
+	InventoryPg2Config pgxpool.Config
 }
 
 func Init(config *Config) error {
 	rand.Seed(time.Now().UnixNano()) // for generate order id
 	var err error
-	order_pg_pool, err = pgx.NewConnPool(config.OrderPgConfig)
+	order_pg_pool, err = pgxpool.NewWithConfig(context.Background(), &config.OrderPgConfig)
 	if err != nil {
 		return err
 	}
-	inventory_pg_pool, err = pgx.NewConnPool(config.InventoryPgConfig)
+	inventory_pg_pool, err = pgxpool.NewWithConfig(context.Background(), &config.InventoryPgConfig)
 	if err != nil {
 		return err
 	}
-	inventory_pg2_pool, err = pgx.NewConnPool(config.InventoryPg2Config)
+	inventory_pg2_pool, err = pgxpool.NewWithConfig(context.Background(), &config.InventoryPg2Config)
 	if err != nil {
 		return err
 	}

@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"gopkg.in/jackc/pgx.v2"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/goodplayer/seckill/full"
 )
