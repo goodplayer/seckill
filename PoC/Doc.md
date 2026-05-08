@@ -21,6 +21,7 @@ PoC业务目标
 参考数值
 
 * 某业务180w tps/ 30w tps, 深度 2 billion
+* 某业务2016年限流2w tps/database, 5k tps/single item
 
 ## 业务场景分析
 
